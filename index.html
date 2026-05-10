@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gesture Garden — Hands That Sing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f6efe1;
+    --ink: #2a1d12;
+    --tomato: #e0563b;
+    --moss: #4f7a4a;
+    --sky: #5a8ec4;
+    --honey: #f0b952;
+    --plum: #7d4d6e;
+    --shadow: rgba(42, 29, 18, 0.18);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--paper); color: var(--ink); font-family: 'Nunito', system-ui, sans-serif; }
+  body {
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(224, 86, 59, 0.07) 0, transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(79, 122, 74, 0.08) 0, transparent 40%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.11 0 0 0 0 0.07 0 0 0 0.07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    padding: 32px 20px 80px;
+  }
+  h1, h2, h3, .display { font-family: 'Fraunces', Georgia, serif; font-weight: 800; letter-spacing: -0.02em; }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* Header */
+  header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-mark {
+    width: 56px; height: 56px; border-radius: 50%; background: var(--tomato);
+    display: flex; align-items: center; justify-content: center; color: var(--paper);
+    font-family: 'Fraunces'; font-weight: 900; font-size: 32px;
+    box-shadow: 4px 4px 0 var(--ink);
+    transform: rotate(-4deg);
+  }
+  h1 { font-size: 36px; line-height: 1; }
+  h1 small { display: block; font-family: 'Nunito'; font-weight: 600; font-size: 14px; color: var(--plum); letter-spacing: 0.04em; text-transform: uppercase; margin-top: 4px; }
+
+  .mode-switch {
+    background: var(--ink); border-radius: 100px; padding: 6px; display: flex; gap: 4px;
+    box-shadow: 4px 4px 0 var(--honey);
+  }
+  .mode-switch button {
+    border: none; background: transparent; color: var(--paper); padding: 10px 22px;
+    border-radius: 100px; font-family: 'Nunito'; font-weight: 700; font-size: 15px; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .mode-switch button.active { background: var(--honey); color: var(--ink); }
+
+  /* Cards */
+  .card {
+    background: #fffaf0; border: 2.5px solid var(--ink); border-radius: 24px;
+    padding: 28px; box-shadow: 6px 6px 0 var(--ink);
+    margin-bottom: 28px;
+  }
+  .card h2 { font-size: 26px; margin-bottom: 6px; }
+  .card .subtitle { color: var(--plum); font-weight: 600; margin-bottom: 20px; }
+
+  /* Gesture grid */
+  .gesture-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 18px; }
+  .gesture-card {
+    border: 2.5px solid var(--ink); border-radius: 18px; padding: 16px;
+    background: var(--paper); position: relative; transition: transform 0.15s;
+  }
+  .gesture-card:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--ink); }
+  .gesture-card.trained { background: #eef5e9; }
+  .gesture-card.active { background: #fff3d6; border-color: var(--tomato); box-shadow: 4px 4px 0 var(--tomato); }
+  .gesture-card .badge {
+    position: absolute; top: -10px; right: -10px;
+    background: var(--ink); color: var(--paper); font-family: 'Fraunces'; font-weight: 800;
+    width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .gesture-card .name { font-family: 'Fraunces'; font-weight: 800; font-size: 20px; margin-bottom: 6px; min-height: 28px; }
+  .gesture-card .meta { font-size: 12px; color: var(--plum); margin-bottom: 10px; font-weight: 600; }
+  .gesture-card input[type="text"] {
+    width: 100%; border: 2px solid var(--ink); border-radius: 10px; padding: 8px 10px;
+    font-family: 'Nunito'; font-size: 14px; background: #fffaf0; margin-bottom: 8px;
+  }
+  .gesture-card .row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* Buttons */
+  .btn {
+    border: 2.5px solid var(--ink); background: var(--paper); color: var(--ink);
+    padding: 10px 18px; border-radius: 12px; font-family: 'Nunito'; font-weight: 700; font-size: 14px;
+    cursor: pointer; transition: transform 0.1s, box-shadow 0.1s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+  .btn:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: none; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn.primary { background: var(--tomato); color: var(--paper); }
+  .btn.success { background: var(--moss); color: var(--paper); }
+  .btn.warn { background: var(--honey); }
+  .btn.small { padding: 6px 10px; font-size: 12px; border-radius: 8px; }
+
+  /* Camera area */
+  .camera-wrap {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;
+  }
+  @media (max-width: 800px) { .camera-wrap { grid-template-columns: 1fr; } }
+  .camera-frame {
+    position: relative; border: 3px solid var(--ink); border-radius: 20px; overflow: hidden;
+    background: var(--ink); aspect-ratio: 4/3; box-shadow: 6px 6px 0 var(--ink);
+  }
+  .camera-frame video, .camera-frame canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+  .camera-frame canvas { pointer-events: none; }
+  .camera-frame.off::after {
+    content: 'camera off'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--paper); font-family: 'Fraunces'; font-style: italic; font-size: 22px; opacity: 0.6;
+  }
+  .status-pill {
+    position: absolute; top: 14px; left: 14px; background: var(--paper); border: 2px solid var(--ink);
+    padding: 6px 12px; border-radius: 100px; font-weight: 700; font-size: 13px; z-index: 2;
+  }
+  .status-pill.live { background: var(--tomato); color: var(--paper); border-color: var(--ink); }
+  .status-pill.live::before {
+    content: ''; display: inline-block; width: 8px; height: 8px; background: var(--paper); border-radius: 50%;
+    margin-right: 6px; vertical-align: middle; animation: pulse 1.2s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .panel-side h3 { font-size: 22px; margin-bottom: 12px; }
+  .panel-side p { line-height: 1.5; margin-bottom: 14px; }
+  .step-list { list-style: none; margin: 0 0 18px; }
+  .step-list li {
+    padding: 10px 14px; background: var(--paper); border: 2px solid var(--ink); border-radius: 12px;
+    margin-bottom: 8px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px;
+  }
+  .step-list li.done { background: #eef5e9; }
+  .step-list li.current { background: var(--honey); }
+  .step-list .num {
+    width: 26px; height: 26px; background: var(--ink); color: var(--paper); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-family: 'Fraunces'; font-weight: 800; font-size: 13px; flex-shrink: 0;
+  }
+  .step-list li.done .num { background: var(--moss); }
+
+  /* Recording capture indicator */
+  .capture-counter {
+    display: flex; gap: 8px; margin: 12px 0;
+  }
+  .capture-counter .dot {
+    width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--ink); background: var(--paper);
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px;
+    font-family: 'Fraunces';
+  }
+  .capture-counter .dot.filled { background: var(--moss); color: var(--paper); }
+  .capture-counter .dot.recording { background: var(--tomato); color: var(--paper); animation: pulse 0.8s infinite; }
+
+  /* Kid mode big readout */
+  .now-playing {
+    background: var(--ink); color: var(--paper); border-radius: 20px; padding: 24px;
+    text-align: center; margin-top: 20px;
+  }
+  .now-playing .label { font-family: 'Nunito'; font-weight: 700; font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--honey); margin-bottom: 8px; }
+  .now-playing .word { font-family: 'Fraunces'; font-weight: 900; font-size: 48px; line-height: 1; }
+  .now-playing.silent .word { opacity: 0.3; font-style: italic; font-weight: 400; font-size: 28px; }
+  .now-playing .raag-tag {
+    margin-top: 12px; font-family: 'Fraunces'; font-style: italic; font-size: 16px; color: var(--honey);
+    min-height: 22px;
+  }
+
+  /* Kid mode navigation header */
+  .kid-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px;
+  }
+  .kid-title { flex: 1; text-align: center; }
+  .kid-title h2 { font-size: 32px; margin-bottom: 4px; }
+  .kid-progress {
+    display: inline-block; font-family: 'Nunito'; font-weight: 700; font-size: 11px;
+    letter-spacing: 0.15em; text-transform: uppercase; color: var(--paper);
+    background: var(--plum); padding: 4px 12px; border-radius: 100px; margin-bottom: 8px;
+  }
+  .nav-arrow {
+    width: 56px; height: 56px; border-radius: 50%; border: 2.5px solid var(--ink);
+    background: var(--paper); font-size: 32px; line-height: 1; cursor: pointer; flex-shrink: 0;
+    font-family: 'Fraunces'; font-weight: 800; color: var(--ink);
+    transition: transform 0.1s, box-shadow 0.1s, background 0.15s;
+  }
+  .nav-arrow:hover:not(:disabled) { background: var(--honey); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+  .nav-arrow:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: none; }
+  .nav-arrow:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .play-bar {
+    position: sticky; bottom: 16px; margin: 32px auto 0; max-width: 1100px;
+    background: var(--ink); border-radius: 100px; padding: 12px 18px;
+    display: flex; align-items: center; gap: 14px; box-shadow: 6px 6px 0 var(--honey);
+  }
+  .play-bar .label { color: var(--paper); font-weight: 700; font-size: 14px; }
+  .play-bar select {
+    background: var(--paper); border: 2px solid var(--paper); border-radius: 100px; padding: 8px 14px;
+    font-family: 'Nunito'; font-weight: 700; font-size: 14px; color: var(--ink); cursor: pointer;
+  }
+  .play-bar .play-btn {
+    background: var(--honey); border: none; width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+    transition: transform 0.1s;
+  }
+  .play-bar .play-btn:hover { transform: scale(1.05); }
+  .play-bar .play-btn svg { width: 18px; height: 18px; fill: var(--ink); }
+
+  /* Hidden helpers */
+  .hidden { display: none !important; }
+  .empty-state { color: var(--plum); font-style: italic; padding: 24px; text-align: center; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper); padding: 12px 20px; border-radius: 100px;
+    font-weight: 700; font-size: 14px; z-index: 100; opacity: 0; pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-8px); }
+
+  /* Confidence meter */
+  .confidence-meter {
+    height: 8px; background: var(--paper); border: 2px solid var(--ink); border-radius: 100px;
+    overflow: hidden; margin-top: 10px;
+  }
+  .confidence-meter .fill { height: 100%; background: var(--moss); width: 0%; transition: width 0.15s; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-mark">G</div>
+      <h1>Gesture Garden<small>hands that sing</small></h1>
+    </div>
+    <div class="mode-switch">
+      <button id="mode-mentor" class="active">Mentor</button>
+      <button id="mode-kid">Kid</button>
+    </div>
+  </header>
+
+  <!-- ============ MENTOR MODE ============ -->
+  <section id="mentor-view">
+    <div class="card">
+      <h2>Step 1 · Set up your five gestures</h2>
+      <p class="subtitle">Give each one a word and (if you'd like) record audio. Then teach it by showing the gesture three times.</p>
+      <div class="gesture-grid" id="gesture-grid"></div>
+    </div>
+
+    <div class="card" id="train-card">
+      <h2>Step 2 · Teach the camera</h2>
+      <p class="subtitle">Pick a gesture above and capture three samples. Hold the pose steady — the camera will count down.</p>
+
+      <div class="camera-wrap">
+        <div>
+          <div class="camera-frame off" id="mentor-frame">
+            <div class="status-pill" id="mentor-status">camera off</div>
+            <video id="mentor-video" autoplay playsinline muted></video>
+            <canvas id="mentor-overlay"></canvas>
+          </div>
+          <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn primary" id="start-cam-mentor">Start camera</button>
+            <button class="btn" id="stop-cam-mentor" disabled>Stop camera</button>
+          </div>
+        </div>
+
+        <div class="panel-side">
+          <h3 id="train-target">No gesture selected</h3>
+          <p id="train-instructions">Pick a gesture from the grid to start teaching it.</p>
+          <div class="capture-counter" id="capture-counter">
+            <div class="dot">1</div><div class="dot">2</div><div class="dot">3</div>
+          </div>
+          <button class="btn success" id="capture-btn" disabled>Capture sample</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ KID MODE ============ -->
+  <section id="kid-view" class="hidden">
+    <div class="card">
+      <div class="kid-header">
+        <button class="nav-arrow" id="prev-gesture" aria-label="Previous">‹</button>
+        <div class="kid-title">
+          <div class="kid-progress" id="kid-progress">1 of 5</div>
+          <h2 id="kid-target-name">Gesture 1</h2>
+          <p class="subtitle" id="kid-target-raag">— start the camera below —</p>
+        </div>
+        <button class="nav-arrow" id="next-gesture" aria-label="Next">›</button>
+      </div>
+
+      <div class="camera-wrap">
+        <div>
+          <div class="camera-frame off" id="kid-frame">
+            <div class="status-pill" id="kid-status">camera off</div>
+            <video id="kid-video" autoplay playsinline muted></video>
+            <canvas id="kid-overlay"></canvas>
+          </div>
+          <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn primary" id="start-cam-kid">Start camera</button>
+            <button class="btn" id="stop-cam-kid" disabled>Stop camera</button>
+          </div>
+        </div>
+
+        <div class="panel-side">
+          <div class="now-playing silent" id="now-playing">
+            <div class="label">Now playing</div>
+            <div class="word">— show the gesture —</div>
+            <div class="raag-tag" id="raag-tag"></div>
+          </div>
+          <div class="confidence-meter"><div class="fill" id="confidence-fill"></div></div>
+          <p style="margin-top: 14px; font-size: 14px; color: var(--plum); font-weight: 600;" id="kid-tip">
+            Try to match the gesture you learned. Each time you hold it, a new tune plays.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PLAY BAR ============ -->
+  <div class="play-bar">
+    <span class="label">Play word</span>
+    <select id="play-select"><option value="">— pick a gesture —</option></select>
+    <button class="play-btn" id="play-btn" aria-label="Play">
+      <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- MediaPipe Hands via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+
+<script>
+/* =====================================================================
+   GESTURE GARDEN
+   --------------------------------------------------------------------
+   - 5 gesture slots, each with: name (word), optional audio blob,
+     and 3 sample landmark sets (the "training data")
+   - MediaPipe Hands gives us 21 landmarks per frame (x,y,z each)
+   - We normalize landmarks (center on wrist, scale by hand size) so
+     it's translation- and scale-invariant
+   - KNN classifier (k=3): classify by min distance to stored samples
+     -> a confidence threshold decides if we recognized something
+   - Kid mode: when classified gesture stays stable for ~6 frames,
+     we start a generated melody (Web Audio); when it breaks for
+     ~6 frames, we stop. This avoids flicker.
+===================================================================== */
+
+const NUM_GESTURES = 5;
+const SAMPLES_PER_GESTURE = 3;
+// Recognition: a frame's feature vector must be CLOSE to the focused gesture
+// AND clearly closer to it than to any other gesture (margin), AND a hand
+// must actually be visible. All three conditions must hold.
+const MATCH_THRESHOLD = 0.18;     // max average distance to focused gesture's samples
+const MARGIN = 0.06;              // best must beat runner-up by at least this much
+const STABILITY_FRAMES = 8;       // frames a gesture must hold before triggering
+const FEATURE_SMOOTHING = 4;      // last N frames averaged before classifying
+
+// State
+const gestures = Array.from({length: NUM_GESTURES}, (_, i) => ({
+  id: i,
+  name: '',
+  audioBlob: null,
+  audioUrl: null,
+  samples: []   // array of Float32Array(63)
+}));
+
+let activeTrainingId = null;
+let currentMode = 'mentor';
+let mentorStream = null, kidStream = null;
+let mentorHands = null, kidHands = null;
+let mentorRAF = null, kidRAF = null;
+let lastMentorLandmarks = null;
+let lastKidLandmarks = null;
+
+// Kid mode melody state
+let currentDetectedId = null;
+let stableCount = 0;
+let unstableCount = 0;
+let activeGestureId = null;
+let melodyPlaying = false;
+
+// Kid-mode navigation: index into trained-gesture list
+let kidFocusIdx = 0; // which trained gesture is currently displayed
+
+// ============ UI BUILD ============
+const grid = document.getElementById('gesture-grid');
+gestures.forEach(g => {
+  const card = document.createElement('div');
+  card.className = 'gesture-card';
+  card.dataset.id = g.id;
+  card.innerHTML = `
+    <div class="badge">${g.id + 1}</div>
+    <div class="name" data-name>untitled</div>
+    <div class="meta" data-meta>0 / 3 samples</div>
+    <input type="text" placeholder="word, e.g. apple" data-word />
+    <div class="row">
+      <button class="btn small" data-train>Teach</button>
+      <button class="btn small" data-record-audio>🎙 Record audio</button>
+    </div>
+    <div class="row" style="margin-top:6px;">
+      <button class="btn small" data-clear>Clear</button>
+      <span data-audio-status style="font-size:11px;color:var(--plum);font-weight:700;align-self:center;"></span>
+    </div>
+  `;
+  grid.appendChild(card);
+
+  const wordInput = card.querySelector('[data-word]');
+  wordInput.addEventListener('input', e => {
+    g.name = e.target.value.trim();
+    card.querySelector('[data-name]').textContent = g.name || 'untitled';
+    refreshSelect();
+  });
+
+  card.querySelector('[data-train]').addEventListener('click', () => selectForTraining(g.id));
+  card.querySelector('[data-record-audio]').addEventListener('click', () => recordAudioFor(g.id, card));
+  card.querySelector('[data-clear]').addEventListener('click', () => clearGesture(g.id));
+});
+
+function refreshGestureCard(id) {
+  const g = gestures[id];
+  const card = grid.querySelector(`[data-id="${id}"]`);
+  card.querySelector('[data-meta]').textContent = `${g.samples.length} / 3 samples`;
+  card.classList.toggle('trained', g.samples.length === SAMPLES_PER_GESTURE);
+  card.classList.toggle('active', activeTrainingId === id);
+  card.querySelector('[data-audio-status]').textContent = g.audioBlob ? '✓ audio saved' : '';
+}
+
+function refreshSelect() {
+  const sel = document.getElementById('play-select');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— pick a gesture —</option>';
+  gestures.forEach(g => {
+    if (g.name || g.audioBlob) {
+      const opt = document.createElement('option');
+      opt.value = g.id;
+      opt.textContent = `${g.id + 1}. ${g.name || '(audio only)'}`;
+      sel.appendChild(opt);
+    }
+  });
+  sel.value = prev;
+}
+
+// ============ TRAINING SELECTION ============
+function selectForTraining(id) {
+  activeTrainingId = id;
+  gestures.forEach(g => refreshGestureCard(g.id));
+  const g = gestures[id];
+  document.getElementById('train-target').textContent = `Teaching: ${g.name || `Gesture ${id+1}`}`;
+  document.getElementById('train-instructions').textContent =
+    'Hold the pose in front of the camera, then click Capture. Repeat three times with small variations.';
+  updateCaptureCounter();
+  document.getElementById('capture-btn').disabled = !mentorStream;
+}
+
+function updateCaptureCounter() {
+  const dots = document.querySelectorAll('#capture-counter .dot');
+  const g = activeTrainingId !== null ? gestures[activeTrainingId] : null;
+  dots.forEach((d, i) => {
+    d.classList.remove('filled', 'recording');
+    if (g && i < g.samples.length) d.classList.add('filled');
+  });
+}
+
+function clearGesture(id) {
+  gestures[id].samples = [];
+  gestures[id].audioBlob = null;
+  gestures[id].audioUrl = null;
+  refreshGestureCard(id);
+  if (activeTrainingId === id) updateCaptureCounter();
+  refreshSelect();
+}
+
+// ============ AUDIO RECORDING ============
+async function recordAudioFor(id, card) {
+  const btn = card.querySelector('[data-record-audio]');
+  if (btn.dataset.recording === 'true') return;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const rec = new MediaRecorder(stream);
+    const chunks = [];
+    rec.ondataavailable = e => chunks.push(e.data);
+    rec.onstop = () => {
+      const blob = new Blob(chunks, { type: 'audio/webm' });
+      gestures[id].audioBlob = blob;
+      gestures[id].audioUrl = URL.createObjectURL(blob);
+      stream.getTracks().forEach(t => t.stop());
+      btn.textContent = '🎙 Record audio';
+      btn.dataset.recording = 'false';
+      refreshGestureCard(id);
+      refreshSelect();
+      toast(`Audio saved for gesture ${id+1}`);
+    };
+    rec.start();
+    btn.textContent = '⏹ Stop (3s max)';
+    btn.dataset.recording = 'true';
+    setTimeout(() => { if (rec.state === 'recording') rec.stop(); }, 3000);
+  } catch (e) {
+    toast('Mic access denied');
+  }
+}
+
+// ============ MEDIAPIPE SETUP ============
+function makeHands(onResults) {
+  const hands = new Hands({
+    locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
+  });
+  hands.setOptions({
+    maxNumHands: 1,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.6,
+    minTrackingConfidence: 0.5
+  });
+  hands.onResults(onResults);
+  return hands;
+}
+
+// ---------- FEATURE EXTRACTION ----------
+// Raw 21×3 landmarks are too low-level — small wrist tilt or hand rotation
+// shifts the whole vector even when the gesture (finger pose) is identical.
+// We extract features that capture FINGER POSE, not hand position:
+//   1. Angle at each finger joint (12 angles total) — invariant to rotation/scale
+//   2. Pairwise distances between fingertips, normalized — captures pinches,
+//      finger spread, etc.
+// Together: 12 + 10 = 22-dim feature vector.
+
+const FINGER_JOINTS = [
+  // [a, b, c]  — angle at b formed by a→b→c
+  [1,2,3],[2,3,4],          // thumb
+  [5,6,7],[6,7,8],          // index
+  [9,10,11],[10,11,12],     // middle
+  [13,14,15],[14,15,16],    // ring
+  [17,18,19],[18,19,20],    // pinky
+  [0,5,9],[0,9,13],         // palm-spread between metacarpals
+];
+const FINGERTIPS = [4, 8, 12, 16, 20];
+
+function angleAt(a, b, c) {
+  const v1x = a.x - b.x, v1y = a.y - b.y, v1z = a.z - b.z;
+  const v2x = c.x - b.x, v2y = c.y - b.y, v2z = c.z - b.z;
+  const n1 = Math.hypot(v1x, v1y, v1z) || 1;
+  const n2 = Math.hypot(v2x, v2y, v2z) || 1;
+  let cos = (v1x*v2x + v1y*v2y + v1z*v2z) / (n1 * n2);
+  cos = Math.max(-1, Math.min(1, cos));
+  return Math.acos(cos); // 0..π
+}
+
+function extractFeatures(landmarks) {
+  // Hand size = wrist→middle-MCP, used to normalize fingertip distances
+  const wrist = landmarks[0];
+  const mcp = landmarks[9];
+  const handSize = Math.hypot(mcp.x - wrist.x, mcp.y - wrist.y, mcp.z - wrist.z) || 1;
+
+  const feat = new Float32Array(FINGER_JOINTS.length + (FINGERTIPS.length * (FINGERTIPS.length - 1)) / 2);
+  let idx = 0;
+
+  // Joint angles (normalized to 0..1 by dividing by π)
+  for (const [a, b, c] of FINGER_JOINTS) {
+    feat[idx++] = angleAt(landmarks[a], landmarks[b], landmarks[c]) / Math.PI;
+  }
+  // Pairwise fingertip distances, normalized by hand size
+  for (let i = 0; i < FINGERTIPS.length; i++) {
+    for (let j = i + 1; j < FINGERTIPS.length; j++) {
+      const p = landmarks[FINGERTIPS[i]], q = landmarks[FINGERTIPS[j]];
+      feat[idx++] = Math.hypot(p.x - q.x, p.y - q.y, p.z - q.z) / handSize;
+    }
+  }
+  return feat;
+}
+
+function featDistance(a, b) {
+  let s = 0;
+  for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; }
+  return Math.sqrt(s / a.length);
+}
+
+// Rolling window of recent feature vectors → averaged for classification
+const recentFeatures = [];
+function smoothFeature(f) {
+  recentFeatures.push(f);
+  if (recentFeatures.length > FEATURE_SMOOTHING) recentFeatures.shift();
+  const out = new Float32Array(f.length);
+  for (const ff of recentFeatures) for (let i = 0; i < f.length; i++) out[i] += ff[i];
+  for (let i = 0; i < out.length; i++) out[i] /= recentFeatures.length;
+  return out;
+}
+function clearSmoothing() { recentFeatures.length = 0; }
+
+// Classify with margin: returns { id, distance, runnerUp, distToFocused }
+// distance = avg distance to closest gesture's 3 samples
+// runnerUp = avg distance to second-closest gesture
+function classify(landmarks, focusedId) {
+  const raw = extractFeatures(landmarks);
+  const v = smoothFeature(raw);
+
+  const perGesture = []; // { id, avgDist }
+  for (const g of gestures) {
+    if (g.samples.length !== SAMPLES_PER_GESTURE) continue;
+    let sum = 0;
+    for (const s of g.samples) sum += featDistance(v, s);
+    perGesture.push({ id: g.id, avgDist: sum / g.samples.length });
+  }
+  if (perGesture.length === 0) return null;
+  perGesture.sort((a, b) => a.avgDist - b.avgDist);
+
+  const best = perGesture[0];
+  const second = perGesture[1] ? perGesture[1].avgDist : Infinity;
+  const focused = perGesture.find(p => p.id === focusedId);
+  return {
+    id: best.id,
+    distance: best.avgDist,
+    margin: second - best.avgDist,
+    distToFocused: focused ? focused.avgDist : Infinity,
+  };
+}
+
+// ============ DRAWING ============
+function drawHand(canvas, video, landmarks) {
+  const ctx = canvas.getContext('2d');
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!landmarks) return;
+  if (window.drawConnectors && window.HAND_CONNECTIONS) {
+    drawConnectors(ctx, landmarks, HAND_CONNECTIONS, { color: '#f0b952', lineWidth: 4 });
+    drawLandmarks(ctx, landmarks, { color: '#e0563b', lineWidth: 1, radius: 4, fillColor: '#fffaf0' });
+  } else {
+    // fallback
+    ctx.fillStyle = '#e0563b';
+    landmarks.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x * canvas.width, p.y * canvas.height, 5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+}
+
+// ============ MENTOR CAMERA ============
+async function startMentorCam() {
+  try {
+    mentorStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+    const video = document.getElementById('mentor-video');
+    video.srcObject = mentorStream;
+    await video.play();
+
+    document.getElementById('mentor-frame').classList.remove('off');
+    document.getElementById('mentor-status').textContent = 'live';
+    document.getElementById('mentor-status').classList.add('live');
+    document.getElementById('start-cam-mentor').disabled = true;
+    document.getElementById('stop-cam-mentor').disabled = false;
+    if (activeTrainingId !== null) document.getElementById('capture-btn').disabled = false;
+
+    mentorHands = makeHands(results => {
+      const canvas = document.getElementById('mentor-overlay');
+      if (results.multiHandLandmarks && results.multiHandLandmarks[0]) {
+        lastMentorLandmarks = results.multiHandLandmarks[0];
+        drawHand(canvas, video, lastMentorLandmarks);
+      } else {
+        lastMentorLandmarks = null;
+        drawHand(canvas, video, null);
+      }
+    });
+    pumpMentor();
+  } catch (e) {
+    toast('Camera access denied'); console.error(e);
+  }
+}
+
+async function pumpMentor() {
+  const video = document.getElementById('mentor-video');
+  if (!mentorStream || video.readyState < 2) {
+    mentorRAF = requestAnimationFrame(pumpMentor); return;
+  }
+  await mentorHands.send({ image: video });
+  mentorRAF = requestAnimationFrame(pumpMentor);
+}
+
+function stopMentorCam() {
+  if (mentorStream) { mentorStream.getTracks().forEach(t => t.stop()); mentorStream = null; }
+  if (mentorRAF) cancelAnimationFrame(mentorRAF);
+  document.getElementById('mentor-frame').classList.add('off');
+  document.getElementById('mentor-status').textContent = 'camera off';
+  document.getElementById('mentor-status').classList.remove('live');
+  document.getElementById('start-cam-mentor').disabled = false;
+  document.getElementById('stop-cam-mentor').disabled = true;
+  document.getElementById('capture-btn').disabled = true;
+  lastMentorLandmarks = null;
+}
+
+document.getElementById('start-cam-mentor').addEventListener('click', startMentorCam);
+document.getElementById('stop-cam-mentor').addEventListener('click', stopMentorCam);
+
+// Capture sample
+document.getElementById('capture-btn').addEventListener('click', () => {
+  if (activeTrainingId === null) { toast('Pick a gesture first'); return; }
+  if (!lastMentorLandmarks) { toast('No hand detected — show your hand'); return; }
+  const g = gestures[activeTrainingId];
+  if (g.samples.length >= SAMPLES_PER_GESTURE) { toast('Already have 3 samples — clear to redo'); return; }
+
+  // Brief countdown then capture
+  const dots = document.querySelectorAll('#capture-counter .dot');
+  const idx = g.samples.length;
+  dots[idx].classList.add('recording');
+  let count = 3;
+  document.getElementById('capture-btn').disabled = true;
+  document.getElementById('capture-btn').textContent = `Hold... ${count}`;
+  const tick = setInterval(() => {
+    count--;
+    if (count > 0) {
+      document.getElementById('capture-btn').textContent = `Hold... ${count}`;
+    } else {
+      clearInterval(tick);
+      if (lastMentorLandmarks) {
+        g.samples.push(extractFeatures(lastMentorLandmarks));
+        toast(`Sample ${g.samples.length}/3 captured`);
+      } else {
+        toast('Lost sight of hand — try again');
+      }
+      document.getElementById('capture-btn').textContent = 'Capture sample';
+      document.getElementById('capture-btn').disabled = false;
+      refreshGestureCard(g.id);
+      updateCaptureCounter();
+    }
+  }, 500);
+});
+
+// ============ KID CAMERA ============
+async function startKidCam() {
+  const trained = gestures.filter(g => g.samples.length === SAMPLES_PER_GESTURE);
+  if (trained.length === 0) {
+    toast('Train at least one gesture in Mentor mode first');
+    return;
+  }
+  try {
+    kidStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+    const video = document.getElementById('kid-video');
+    video.srcObject = kidStream;
+    await video.play();
+
+    document.getElementById('kid-frame').classList.remove('off');
+    document.getElementById('kid-status').textContent = 'live';
+    document.getElementById('kid-status').classList.add('live');
+    document.getElementById('start-cam-kid').disabled = true;
+    document.getElementById('stop-cam-kid').disabled = false;
+
+    kidHands = makeHands(results => {
+      const canvas = document.getElementById('kid-overlay');
+      if (results.multiHandLandmarks && results.multiHandLandmarks[0]) {
+        lastKidLandmarks = results.multiHandLandmarks[0];
+        drawHand(canvas, video, lastKidLandmarks);
+        handleKidFrame(lastKidLandmarks);
+      } else {
+        lastKidLandmarks = null;
+        drawHand(canvas, video, null);
+        handleKidFrame(null);
+      }
+    });
+    pumpKid();
+  } catch (e) {
+    toast('Camera access denied');
+  }
+}
+
+async function pumpKid() {
+  const video = document.getElementById('kid-video');
+  if (!kidStream || video.readyState < 2) {
+    kidRAF = requestAnimationFrame(pumpKid); return;
+  }
+  await kidHands.send({ image: video });
+  kidRAF = requestAnimationFrame(pumpKid);
+}
+
+function stopKidCam() {
+  if (kidStream) { kidStream.getTracks().forEach(t => t.stop()); kidStream = null; }
+  if (kidRAF) cancelAnimationFrame(kidRAF);
+  document.getElementById('kid-frame').classList.add('off');
+  document.getElementById('kid-status').textContent = 'camera off';
+  document.getElementById('kid-status').classList.remove('live');
+  document.getElementById('start-cam-kid').disabled = false;
+  document.getElementById('stop-cam-kid').disabled = true;
+  stopMelody();
+  setNowPlaying(null);
+  lastKidLandmarks = null;
+}
+
+document.getElementById('start-cam-kid').addEventListener('click', startKidCam);
+document.getElementById('stop-cam-kid').addEventListener('click', stopKidCam);
+
+// Kid frame handler — only the focused gesture triggers a melody, AND the
+// match must be (a) close to the focused gesture's samples, (b) clearly
+// closer to it than to any other gesture (margin), (c) the closest class
+// overall must be the focused one. Otherwise, silence.
+function handleKidFrame(landmarks) {
+  const trained = getTrainedGestures();
+  if (trained.length === 0) {
+    document.getElementById('confidence-fill').style.width = '0%';
+    return;
+  }
+  const focusedId = trained[kidFocusIdx].id;
+
+  let isFocused = false;
+  let confidence = 0;
+
+  if (landmarks) {
+    const r = classify(landmarks, focusedId);
+    if (r) {
+      // Confidence display: how close are we to the focused gesture?
+      // Map 0..MATCH_THRESHOLD to 100..0, anything beyond → 0.
+      confidence = Math.max(0, 1 - r.distToFocused / MATCH_THRESHOLD);
+
+      // STRICT: the best-matching class must BE the focused one,
+      // distance must be under threshold, AND it must beat second best by margin.
+      if (r.id === focusedId &&
+          r.distance < MATCH_THRESHOLD &&
+          r.margin > MARGIN) {
+        isFocused = true;
+      }
+    }
+  } else {
+    // No hand visible — also clear feature smoothing so old frames don't linger
+    clearSmoothing();
+  }
+  document.getElementById('confidence-fill').style.width = `${Math.round(confidence * 100)}%`;
+
+  // Stability debounce
+  const detectedNow = isFocused ? focusedId : null;
+  if (detectedNow === currentDetectedId) {
+    stableCount++; unstableCount = 0;
+  } else {
+    unstableCount++;
+    if (unstableCount > STABILITY_FRAMES) {
+      currentDetectedId = detectedNow;
+      stableCount = 0;
+      unstableCount = 0;
+    }
+  }
+
+  if (stableCount === STABILITY_FRAMES) {
+    if (currentDetectedId !== null && currentDetectedId !== activeGestureId) {
+      activeGestureId = currentDetectedId;
+      startMelody(activeGestureId);
+      setNowPlaying(activeGestureId);
+    } else if (currentDetectedId === null && activeGestureId !== null) {
+      activeGestureId = null;
+      stopMelody();
+      setNowPlaying(null);
+    }
+  }
+}
+
+function getTrainedGestures() {
+  return gestures.filter(g => g.samples.length === SAMPLES_PER_GESTURE);
+}
+
+function updateKidNav() {
+  const trained = getTrainedGestures();
+  const prev = document.getElementById('prev-gesture');
+  const next = document.getElementById('next-gesture');
+  const name = document.getElementById('kid-target-name');
+  const raagSub = document.getElementById('kid-target-raag');
+  const progress = document.getElementById('kid-progress');
+
+  if (trained.length === 0) {
+    name.textContent = 'No gestures yet';
+    raagSub.textContent = 'Train a gesture in Mentor mode first';
+    progress.textContent = '0 of 0';
+    prev.disabled = true; next.disabled = true;
+    return;
+  }
+  if (kidFocusIdx >= trained.length) kidFocusIdx = 0;
+  const g = trained[kidFocusIdx];
+  const raag = raagFor(g.id);
+  name.textContent = g.name || `Gesture ${g.id + 1}`;
+  raagSub.textContent = `Raag ${raag.name} — ${raag.mood}`;
+  progress.textContent = `${kidFocusIdx + 1} of ${trained.length}`;
+  prev.disabled = trained.length < 2;
+  next.disabled = trained.length < 2;
+}
+
+document.getElementById('prev-gesture').addEventListener('click', () => {
+  const trained = getTrainedGestures();
+  if (trained.length === 0) return;
+  kidFocusIdx = (kidFocusIdx - 1 + trained.length) % trained.length;
+  // reset detection state when switching
+  resetKidDetection();
+  updateKidNav();
+});
+
+document.getElementById('next-gesture').addEventListener('click', () => {
+  const trained = getTrainedGestures();
+  if (trained.length === 0) return;
+  kidFocusIdx = (kidFocusIdx + 1) % trained.length;
+  resetKidDetection();
+  updateKidNav();
+});
+
+function resetKidDetection() {
+  currentDetectedId = null;
+  stableCount = 0;
+  unstableCount = 0;
+  clearSmoothing();
+  if (activeGestureId !== null) {
+    activeGestureId = null;
+    stopMelody();
+    setNowPlaying(null);
+  }
+}
+
+function setNowPlaying(id) {
+  const np = document.getElementById('now-playing');
+  if (id === null) {
+    np.classList.add('silent');
+    np.querySelector('.word').textContent = '— show the gesture —';
+  } else {
+    np.classList.remove('silent');
+    np.querySelector('.word').textContent = gestures[id].name || `Gesture ${id+1}`;
+  }
+}
+
+// ============ MELODY (Web Audio) — Hindustani-inspired ============
+let audioCtx = null;
+let melodyTimer = null;
+let dronesActive = [];
+
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+/* Raags — each is a set of swaras (scale degrees in semitones from Sa)
+   Indian classical uses 12 swaras: Sa(0) Re♭(1) Re(2) Ga♭(3) Ga(4)
+   Ma(5) Ma#(6) Pa(7) Dha♭(8) Dha(9) Ni♭(10) Ni(11) Sa'(12)               */
+const RAAGS = [
+  { name: 'Yaman',      mood: 'evening calm',        aroha: [0,2,4,6,7,9,11,12], avaroha: [12,11,9,7,6,4,2,0], vadi: 4,  pakad: [11,9,7,6,4] },
+  { name: 'Bhairav',    mood: 'dawn devotion',       aroha: [0,1,4,5,7,8,11,12], avaroha: [12,11,8,7,5,4,1,0], vadi: 8,  pakad: [1,4,5,4,1,0] },
+  { name: 'Bhimpalasi', mood: 'afternoon longing',   aroha: [0,3,5,7,10,12],     avaroha: [12,10,9,7,5,3,2,0], vadi: 5,  pakad: [3,5,7,5,3,2,0] },
+  { name: 'Kafi',       mood: 'playful spring',      aroha: [0,2,3,5,7,9,10,12], avaroha: [12,10,9,7,5,3,2,0], vadi: 7,  pakad: [3,5,7,9,7,5,3] },
+  { name: 'Desh',       mood: 'monsoon joy',         aroha: [0,2,5,7,9,12],      avaroha: [12,11,10,9,7,5,4,2,0], vadi: 9, pakad: [2,5,9,10,9,7,5] },
+];
+
+const SA_HZ = 261.63; // C4 as Sa
+const swaraToFreq = s => SA_HZ * Math.pow(2, s / 12);
+
+// Pick which raag goes with which gesture slot (stable per session)
+function raagFor(id) { return RAAGS[id % RAAGS.length]; }
+
+// Generate a fresh phrase from a raag — random walk weighted toward vadi & pakad
+function generatePhrase(raag) {
+  const allSwaras = [...new Set([...raag.aroha, ...raag.avaroha])].sort((a,b)=>a-b);
+  const phrase = [];
+  const len = 12 + Math.floor(Math.random() * 8); // 12-19 notes
+  let cursor = allSwaras.indexOf(raag.aroha[0]);
+
+  // Sometimes start with a fragment of the pakad (the raag's signature phrase)
+  if (Math.random() < 0.6) {
+    const pakadStart = Math.floor(Math.random() * Math.max(1, raag.pakad.length - 3));
+    const slice = raag.pakad.slice(pakadStart, pakadStart + 3 + Math.floor(Math.random() * 2));
+    slice.forEach(sw => {
+      phrase.push({ swara: sw, dur: 0.25 + Math.random() * 0.2, ornament: Math.random() < 0.3 ? 'meend' : null });
+    });
+    cursor = allSwaras.indexOf(slice[slice.length - 1]);
+    if (cursor < 0) cursor = 0;
+  }
+
+  while (phrase.length < len) {
+    // Weighted step: favor neighbors, occasional jumps, gravity toward vadi
+    let step;
+    const r = Math.random();
+    if (r < 0.55) step = Math.random() < 0.5 ? -1 : 1;
+    else if (r < 0.75) step = 0;       // hold/repeat
+    else if (r < 0.9)  step = Math.random() < 0.5 ? -2 : 2;
+    else step = Math.random() < 0.5 ? -3 : 3;
+
+    cursor = Math.max(0, Math.min(allSwaras.length - 1, cursor + step));
+    const swara = allSwaras[cursor];
+
+    // Occasional gravity pull toward vadi
+    if (Math.random() < 0.15) {
+      const vadiIdx = allSwaras.indexOf(raag.vadi);
+      if (vadiIdx >= 0) cursor = vadiIdx;
+    }
+
+    const ornament = Math.random() < 0.2 ? 'meend' : (Math.random() < 0.15 ? 'kan' : null);
+    const dur = 0.18 + Math.random() * 0.35;
+    phrase.push({ swara: allSwaras[cursor], dur, ornament });
+  }
+
+  // End on Sa for closure
+  phrase.push({ swara: 0, dur: 0.6, ornament: null });
+  return phrase;
+}
+
+// ---------- HARMONIUM SYNTH ----------
+// A real harmonium is a free-reed instrument: bellows push air through metal
+// reeds, producing a buzzy, harmonically rich, slightly detuned tone with
+// gentle breath fluctuations. We approximate by:
+//   - Stacking 3 sawtooth oscillators per note, slightly detuned (the "reed bank")
+//   - Routing through a soft low-pass filter (warmth, removes the harsh top end)
+//   - Soft attack + long-ish release envelope (no percussive plink)
+//   - Subtle amplitude tremolo (breath of the bellows)
+//   - All notes share a master gain so chords/drone don't clip
+
+let masterGain = null;
+
+function ensureMaster() {
+  if (!masterGain) {
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.7;
+    masterGain.connect(audioCtx.destination);
+  }
+}
+
+// Play one harmonium note, optionally with meend (slide) or kan (grace)
+function playSwara(swara, dur, ornament) {
+  ensureMaster();
+  const now = audioCtx.currentTime;
+  const baseFreq = swaraToFreq(swara);
+
+  // Per-note bus: filter → envelope gain → tremolo gain → master
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 1800; // warm
+  filter.Q.value = 0.6;
+
+  const env = audioCtx.createGain();
+  env.gain.value = 0;
+
+  const tremGain = audioCtx.createGain();
+  tremGain.gain.value = 1;
+
+  // Tremolo: 5Hz LFO, ±6% amplitude
+  const lfo = audioCtx.createOscillator();
+  const lfoDepth = audioCtx.createGain();
+  lfo.frequency.value = 5;
+  lfoDepth.gain.value = 0.06;
+  lfo.connect(lfoDepth); lfoDepth.connect(tremGain.gain);
+  lfo.start(now);
+
+  filter.connect(env); env.connect(tremGain); tremGain.connect(masterGain);
+
+  // Three slightly detuned sawtooth oscillators = "reed stack"
+  const detunes = [-7, 0, 6]; // cents
+  const oscs = [];
+  detunes.forEach((cents, i) => {
+    const o = audioCtx.createOscillator();
+    o.type = 'sawtooth';
+    const f = baseFreq * Math.pow(2, cents / 1200);
+
+    if (ornament === 'meend' && i === 0) {
+      // glide from a tone below up to target
+      const fromF = swaraToFreq(swara - 2) * Math.pow(2, cents / 1200);
+      o.frequency.setValueAtTime(fromF, now);
+      o.frequency.exponentialRampToValueAtTime(f, now + dur * 0.45);
+    } else if (ornament === 'kan' && i === 0) {
+      // grace: brief touch of note above, then settle
+      const aboveF = swaraToFreq(swara + 2) * Math.pow(2, cents / 1200);
+      o.frequency.setValueAtTime(aboveF, now);
+      o.frequency.setValueAtTime(f, now + 0.05);
+    } else {
+      o.frequency.setValueAtTime(f, now);
+    }
+
+    // Per-osc gain — middle one loudest, side ones quieter for a fuller body
+    const og = audioCtx.createGain();
+    og.gain.value = i === 1 ? 0.35 : 0.22;
+    o.connect(og); og.connect(filter);
+    o.start(now);
+    o.stop(now + dur + 0.4);
+    oscs.push(o);
+  });
+
+  // Soft attack, gentle release — like air pressure building and easing
+  env.gain.setValueAtTime(0, now);
+  env.gain.linearRampToValueAtTime(0.18, now + 0.05);
+  env.gain.linearRampToValueAtTime(0.16, now + dur * 0.6);
+  env.gain.exponentialRampToValueAtTime(0.001, now + dur + 0.35);
+
+  // Cleanup LFO
+  setTimeout(() => { try { lfo.stop(); } catch(e) {} }, (dur + 0.5) * 1000);
+}
+
+// Harmonium-style sustained drone (Sa + Pa, low + high octave Sa)
+function startDrone(raag) {
+  ensureMaster();
+  const now = audioCtx.currentTime;
+  const droneNotes = [-12, 0]; // low Sa + Sa
+  if (raag.aroha.includes(7)) droneNotes.push(7);          // Pa
+  else if (raag.aroha.includes(5)) droneNotes.push(5);     // Ma if no Pa
+
+  droneNotes.forEach((sw, idx) => {
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 900;
+    filter.Q.value = 0.5;
+
+    const g = audioCtx.createGain();
+    g.gain.value = 0;
+
+    // Breath tremolo on drone too, slower
+    const lfo = audioCtx.createOscillator();
+    const lfoDepth = audioCtx.createGain();
+    lfo.frequency.value = 3;
+    lfoDepth.gain.value = 0.005;
+    lfo.connect(lfoDepth); lfoDepth.connect(g.gain);
+    lfo.start(now);
+
+    filter.connect(g); g.connect(masterGain);
+
+    const detunes = [-5, 0, 5];
+    const oscs = [];
+    detunes.forEach(cents => {
+      const o = audioCtx.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.value = swaraToFreq(sw) * Math.pow(2, cents / 1200);
+      const og = audioCtx.createGain();
+      og.gain.value = 0.18;
+      o.connect(og); og.connect(filter);
+      o.start(now);
+      oscs.push(o);
+    });
+
+    // Slow swell-in so it doesn't pop
+    g.gain.linearRampToValueAtTime(0.05, now + 0.6 + idx * 0.2);
+    dronesActive.push({ oscs, g, lfo });
+  });
+}
+
+function stopDrone() {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  dronesActive.forEach(({ oscs, g, lfo }) => {
+    try {
+      g.gain.cancelScheduledValues(now);
+      g.gain.linearRampToValueAtTime(0, now + 0.4);
+      oscs.forEach(o => o.stop(now + 0.5));
+      lfo.stop(now + 0.5);
+    } catch(e) {}
+  });
+  dronesActive = [];
+}
+
+function startMelody(id) {
+  ensureAudio();
+  stopMelody();
+  melodyPlaying = true;
+  const raag = raagFor(id);
+
+  // Show raag in UI
+  const tag = document.getElementById('raag-tag');
+  if (tag) tag.textContent = `Raag ${raag.name} · ${raag.mood}`;
+
+  startDrone(raag);
+
+  // Generate a fresh phrase each time, then loop with new generation
+  let phrase = generatePhrase(raag);
+  let i = 0;
+
+  const tick = () => {
+    if (!melodyPlaying) return;
+    if (i >= phrase.length) {
+      // small breath, then a fresh improvisation
+      phrase = generatePhrase(raag);
+      i = 0;
+      melodyTimer = setTimeout(tick, 600);
+      return;
+    }
+    const note = phrase[i];
+    playSwara(note.swara, note.dur, note.ornament);
+    i++;
+    melodyTimer = setTimeout(tick, note.dur * 1000);
+  };
+  tick();
+}
+
+function stopMelody() {
+  melodyPlaying = false;
+  if (melodyTimer) { clearTimeout(melodyTimer); melodyTimer = null; }
+  stopDrone();
+  const tag = document.getElementById('raag-tag');
+  if (tag) tag.textContent = '';
+}
+
+// ============ PLAY BAR ============
+document.getElementById('play-btn').addEventListener('click', () => {
+  const sel = document.getElementById('play-select');
+  const id = parseInt(sel.value, 10);
+  if (isNaN(id)) { toast('Pick a gesture from the dropdown'); return; }
+  const g = gestures[id];
+  if (g.audioBlob) {
+    const audio = new Audio(g.audioUrl);
+    audio.play();
+  } else if (g.name) {
+    speak(g.name);
+  } else {
+    toast('Nothing to play for that gesture yet');
+  }
+});
+
+function speak(text) {
+  if (!('speechSynthesis' in window)) { toast('Speech not supported'); return; }
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.9; u.pitch = 1.05;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+// ============ MODE SWITCH ============
+document.getElementById('mode-mentor').addEventListener('click', () => switchMode('mentor'));
+document.getElementById('mode-kid').addEventListener('click', () => switchMode('kid'));
+
+function switchMode(m) {
+  currentMode = m;
+  document.getElementById('mode-mentor').classList.toggle('active', m === 'mentor');
+  document.getElementById('mode-kid').classList.toggle('active', m === 'kid');
+  document.getElementById('mentor-view').classList.toggle('hidden', m !== 'mentor');
+  document.getElementById('kid-view').classList.toggle('hidden', m !== 'kid');
+  // Stop opposite cam to free resources
+  if (m === 'mentor') stopKidCam();
+  else { stopMentorCam(); updateKidNav(); }
+}
+
+// ============ TOAST ============
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ============ INIT ============
+gestures.forEach(g => refreshGestureCard(g.id));
+refreshSelect();
+updateKidNav();
+</script>
+</body>
+</html>
